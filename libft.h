@@ -27,7 +27,7 @@ void ft_putendl(char *s);
 void ft_putnbr(int n);
 void ft_bzero(void *s, size_t n);
 void *ft_memset(void *b,int c, size_t len);
-char *strchr(const char *s, int c);
+char *ft_strchr(const char *s, int c);
 int ft_toupper(int c);
 int ft_tolower(int c);
 

@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   char_strchr.c                                      :+:      :+:    :+:   */
+/*   ft_strchr.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -12,19 +12,17 @@
 
 #include "libft.h"
 
-char *strchr(const char *s, int c)
+char* ft_strchr(const char* s, int c)
 {
-
-    int i
-
+    int i;
     i=0;
     while(s[i] != '\0')
     {
         if(s[i] == (char)c)
-            return(s[*s+i]);
+            return((char*)s+i);
         i++;
     }
     if(c == '\0')
-        
+        return ((char*)s+i); 
     return(NULL);
 }
