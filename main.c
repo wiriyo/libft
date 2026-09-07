@@ -1,106 +1,105 @@
 /* ============================================================
-**  test main สำหรับ ft_strncmp — เทียบกับ libc strncmp ตรงๆ
-**  compile:  gcc -Wall -Wextra -Werror main.c ft_strncmp.c -o test
+**  test main สำหรับ ft_memchr — เทียบกับ libc memchr (เทียบ offset)
+**  compile:  gcc -Wall -Wextra -Werror main.c ft_memchr.c -o test
 **  run:      ./test   (Windows: test.exe)
-**  วิธีอ่าน: PASS = พี่กับ libc ให้เครื่องหมายเดียวกัน (42 ดูแค่ sign)
+**  วิธีอ่าน: PASS = offset ที่เจอตรงกับ libc (หรือ NULL ตรงกัน)
 ** ============================================================ */
 #include <stdio.h>
 #include <string.h>
 
-int	ft_strncmp(const char *s1, const char *s2, size_t n);
-
-/* 42/libc รับประกันแค่เครื่องหมาย — เทียบ sign ไม่เทียบค่าเป๊ะ */
-static int	sign(int v)
-{
-	if (v < 0)
-		return (-1);
-	if (v > 0)
-		return (1);
-	return (0);
-}
+void	*ft_memchr(const void *s, int c, size_t n);
 
 static int	g_pass;
 static int	g_total;
 
-static void	test_pair(const char *s1, const char *s2, size_t n)
+/* เทียบผล: ทั้งคู่ NULL หรือ offset จาก base เท่ากัน */
+static void	test_pair(const void *s, int c, size_t n)
 {
-	int	libc;
-	int	ft;
+	const unsigned char	*base;
+	unsigned char		*libc_r;
+	unsigned char		*ft_r;
+	long			libc_off;
+	long			ft_off;
 
-	libc = sign(strncmp(s1, s2, n));
-	ft = sign(ft_strncmp(s1, s2, n));
+	base = (const unsigned char *)s;
+	libc_r = (unsigned char *)memchr(s, c, n);
+	ft_r = (unsigned char *)ft_memchr(s, c, n);
+	libc_off = libc_r ? (long)(libc_r - base) : -1;
+	ft_off = ft_r ? (long)(ft_r - base) : -1;
 	g_total++;
-	if (libc == ft)
+	if (libc_off == ft_off)
 	{
 		g_pass++;
-		printf("PASS  [%zu] ft == libc == %+d\n", n, ft);
+		if (libc_off == -1)
+			printf("PASS  memchr(..., %d, %zu) → NULL\n", c, n);
+		else
+			printf("PASS  memchr(..., %d, %zu) → offset %ld\n", c, n, libc_off);
 	}
 	else
 	{
-		printf("FAIL  [%zu] libc=%+d  ft=%+d\n", n, libc, ft);
+		printf("FAIL  memchr(..., %d, %zu)  libc=%ld  ft=%ld\n",
+			c, n, libc_off, ft_off);
 	}
 }
 
-/* เทสต์เคส: {s1, s2, n} */
+/* เคส string ธรรมดา — c เป็น int */
 static const struct s_case
 {
-	const char	*s1;
-	const char	*s2;
+	const char	*s;
+	int		c;
 	size_t		n;
 }	g_cases[] = {
-	{"cat", "dog", 3},          /* ต่างที่ index 0 */
-	{"cat", "car", 3},          /* ต่างที่ index 2 */
-	{"cat", "cat", 3},          /* เท่ากันครบ */
-	{"cat", "catch", 6},        /* s1 จบก่อน (\0 vs 'c') */
-	{"catch", "cat", 6},        /* กลับฝั่ง ('c' vs \0) */
-	{"cat", "dog", 0},          /* n = 0 → 0 เสมอ */
-	{"cat", "dog", 1},          /* n ตัดก่อนถึงตัวต่าง */
-	{"abc", "abd", 2},          /* n ตัดก่อน d → เท่ากัน */
-	{"abc", "abd", 3},          /* n ครบ → เห็น d */
-	{"", "", 5},                /* ว่างทั้งคู่ */
-	{"", "a", 5},               /* ว่าง vs มี */
-	{"a", "", 5},               /* มี vs ว่าง */
-	{"hello", "hello world", 5}, /* n = ความยาวพอดี */
-	{"hello", "hello world", 6}, /* n เลย \0 ไป 1 */
-	{"same", "same", 0},        /* n=0 แม้ string เท่ากัน */
+	{"hello", 'l', 5},        /* 'l' ตัวแรกที่ offset 2 */
+	{"hello", 'h', 5},        /* offset 0 */
+	{"hello", 'o', 5},        /* offset 4 */
+	{"hello", 'x', 5},        /* ไม่มี → NULL */
+	{"hello", '\0', 6},       /* n รวม \0 → เจอ offset 5 */
+	{"hello", '\0', 5},       /* n ไม่ถึง \0 → NULL */
+	{"hello", 'l', 0},        /* n=0 → NULL เสมอ */
+	{"hello", 'e', 1},        /* n=1 ดูแค่ 'h' → NULL (e อยู่ index 1) */
+	{"ab\0cd", 'c', 5},       /* ★ ข้าม \0 ได้ → เจอ offset 3 (ไม่หยุดที่ \0!) */
+	{"ab\0cd", '\0', 5},      /* เจอ \0 กลาง → offset 2 */
+	{"ab\0cd", 'z', 5},       /* ไม่มี → NULL */
+	{"a", 'a', 1},            /* offset 0 */
+	{"", '\0', 0},            /* ว่าง + n=0 → NULL */
+	{"", '\0', 1},            /* ว่างมีแต่ \0, n=1 → offset 0 */
 };
 
 int	main(void)
 {
 	size_t	i;
-	char	hi1[3];
-	char	hi2[3];
-	char	long_a[101];
-	char	long_b[101];
+	char	hi[3];
+	char	big[101];
 
-	/* --- เคสธรรมดา --- */
+	/* --- เคส string --- */
 	for (i = 0; i < sizeof(g_cases) / sizeof(g_cases[0]); i++)
 	{
-		printf("strncmp(\"%s\", \"%s\", %zu) → ", g_cases[i].s1,
-			g_cases[i].s2, g_cases[i].n);
-		test_pair(g_cases[i].s1, g_cases[i].s2, g_cases[i].n);
+		printf("memchr(\"%s\", %d, %zu) → ", g_cases[i].s,
+			g_cases[i].c, g_cases[i].n);
+		test_pair(g_cases[i].s, g_cases[i].c, g_cases[i].n);
 	}
 
-	/* --- เคส unsigned char trap (non-ASCII) ---
-	**   ตัวแรก: byte 0xFF (unsigned = 255, signed = -1)
-	**   ตัวที่สอง: byte 0x00
-	**   libc เทียบ unsigned → 0xFF > 0x00 → ค่าบวก
-	**   ถ้าพี่เทียบ char ธรรมดา → -1 vs 0 → ค่าลบ → FAIL ตรงนี้! */
-	hi1[0] = (char)0xFF;  hi1[1] = 'A'; hi1[2] = '\0';
-	hi2[0] = (char)0x00;  hi2[1] = 'B'; hi2[2] = '\0';
-	printf("strncmp(high-byte, zero-byte, 2) → ");
-	test_pair(hi1, hi2, 2);
+	/* --- เคส unsigned byte (0xFF = 255 ไม่ใช่ -1) --- */
+	hi[0] = (char)0xFF;
+	hi[1] = '\0';
+	hi[2] = 'A';
+	printf("memchr([0xFF,0,'A'], 0xFF, 3) → ");
+	test_pair(hi, 0xFF, 3);        /* เรียก c=255 → ต้องเจอ offset 0 */
+	printf("memchr([0xFF,0,'A'], 0x00, 3) → ");
+	test_pair(hi, 0x00, 3);        /* offset 1 */
+	printf("memchr([0xFF,0,'A'], 'A', 3) → ");
+	test_pair(hi, 'A', 3);         /* offset 2 */
+	printf("memchr([0xFF,0,'A'], 'B', 3) → ");
+	test_pair(hi, 'B', 3);         /* NULL */
 
-	/* --- เคสยาว 100 ตัวเท่ากัน --- */
+	/* --- เคสยาว 100 ตัว --- */
 	for (i = 0; i < 100; i++)
-	{
-		long_a[i] = 'a' + (i % 26);
-		long_b[i] = long_a[i];
-	}
-	long_a[100] = '\0';
-	long_b[100] = '\0';
-	printf("strncmp(100-identical, 100) → ");
-	test_pair(long_a, long_b, 100);
+		big[i] = 'a' + (i % 26);
+	big[100] = '\0';
+	printf("memchr(100-char, ตัวสุดท้าย, 100) → ");
+	test_pair(big, big[99], 100);  /* offset 99 */
+	printf("memchr(100-char, 'Z', 100) → ");
+	test_pair(big, 'Z', 100);      /* NULL */
 
 	printf("\nผลรวม: %d/%d ผ่าน\n", g_pass, g_total);
 	return (g_pass == g_total ? 0 : 1);
