@@ -1,0 +1,26 @@
+=== TEST ft_memmove — เทียบกับ libc ===
+
+--- เคสไม่ overlap (buffer คนละอัน) ---
+PASS  [01/15] copy 'hello world' 11 bytes
+PASS  [02/15] copy 5 bytes แรก -> 'hello'
+PASS  [03/15] n=0 -> ไม่ทำอะไร
+PASS  [04/15] binary 16 bytes
+
+--- เคส overlap: ขยับขวา (dst อยู่หลัง src — ต้องวนถอยหลัง!) ---
+PASS  [05/15] ขยับ 'hello world' ขวา 3 ช่อง (dst=3,src=0,n=11)
+PASS  [06/15] ขยับ 'hello' ขวา 1 ช่อง (dst=1,src=0,n=5) ★คลาสสิก
+PASS  [07/15] เหลื่อมบางส่วน: ขวา 2 (dst=6,src=4,n=8)
+PASS  [08/15] ขยับขวา 1 ช่อง ก้อนใหญ่ 64 bytes
+
+--- เคส overlap: ขยับซ้าย (dst อยู่ก่อน src — วนหน้าหลังได้) ---
+PASS  [09/15] ขยับ 'hello world' ซ้าย 3 ช่อง (dst=0,src=3,n=11)
+PASS  [10/15] ขยับ 'hello' ซ้าย 1 ช่อง (dst=0,src=1,n=5) ★คลาสสิก
+PASS  [11/15] เหลื่อมบางส่วน: ซ้าย 6 (dst=2,src=8,n=10)
+PASS  [12/15] ขยับซ้าย 1 ช่อง ก้อนใหญ่ 64 bytes
+
+--- เคส edge ---
+PASS  [13/15] dst == src (dst=5,src=5) -> ไม่ควรเพี้ยน
+PASS  [14/15] n=0 แม้ตำแหน่งต่าง -> ไม่ทำอะไร
+PASS  [15/15] ขยับซ้าย 1 เกือบเต็ม buffer (127 bytes)
+
+ผลรวม: 15/15 ผ่าน
