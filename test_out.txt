@@ -1,0 +1,17 @@
+--- เคส string ---
+PASS  memcpy(n=11)
+PASS  memcpy(n=5)
+PASS  memcpy(n=0)
+PASS  memcpy(n=1)
+--- เคส \0 กลางทาง (memcpy ต้องไม่หยุด) ---
+PASS  memcpy(n=5)
+PASS  memcpy(n=3)
+--- เคส binary (byte สูง / ศูนย์) ---
+PASS  memcpy(n=16)
+PASS  memcpy(n=7)
+PASS  memcpy(n=0)
+--- เคสยาว 100 ตัว ---
+PASS  memcpy(n=100)
+PASS  memcpy(n=99)
+
+ผลรวม: 11/11 ผ่าน

@@ -1,0 +1,112 @@
+/* ============================================================
+**  test main สำหรับ ft_memcpy — เทียบกับ libc memcpy
+**  compile:  gcc -Wall -Wextra -Werror main.c ft_memcpy.c -o test
+**  run:      ./test   (Windows: test.exe)
+**  วิธีอ่าน: PASS = ค่าที่คัดลอกตรง libc + return ชี้ dst + ไม่เขียนเกิน n
+** ============================================================ */
+#include <stdio.h>
+#include <string.h>
+
+void	*ft_memcpy(void *dst, const void *src, size_t n);
+
+static int	g_pass;
+static int	g_total;
+
+#define	BUF_SZ	128
+
+/* เทียบ ft_memcpy กับ libc: copy src ลง dst_ft / dst_libc แล้วเทียบ n ตัวแรก
+** เติม 0xAA ล่วงหน้า → เช็คด้วยว่าเขียนเกิน n หรือไม่ (ตัวหลัง n ต้องเป็น 0xAA อยู่)
+** return ของ ft ต้องชี้ dst_ft พอดี */
+static void	test_case(const void *src, size_t n)
+{
+	unsigned char	dst_ft[BUF_SZ];
+	unsigned char	dst_libc[BUF_SZ];
+	unsigned char	*src_copy;
+	void		*ret;
+	size_t		i;
+	int		ok;
+
+	src_copy = (unsigned char *)src;
+	ret = NULL;
+	/* เติมลาย 0xAA ทั้งสอง buffer */
+	for (i = 0; i < BUF_SZ; i++)
+	{
+		dst_ft[i] = 0xAA;
+		dst_libc[i] = 0xAA;
+	}
+	/* copy ฝั่ง libc ก่อน (กัน src ซ้ำ) แล้วค่อย copy ฝั่ง ft */
+	memcpy(dst_libc, src, n);
+	ret = ft_memcpy(dst_ft, src, n);
+
+	ok = 1;
+	if (ret != (void *)dst_ft)
+	{
+		ok = 0;
+		printf("FAIL  return ไม่ชี้ dst เดิม\n");
+	}
+	/* เทียบ n ตัวแรกกับ libc */
+	if (memcmp(dst_ft, dst_libc, n) != 0)
+	{
+		ok = 0;
+		printf("FAIL  ข้อมูล n=%zu ตัวแรกไม่ตรง libc\n", n);
+	}
+	/* เช็คไม่เขียนเกิน n */
+	for (i = n; i < BUF_SZ; i++)
+	{
+		if (dst_ft[i] != 0xAA)
+		{
+			ok = 0;
+			printf("FAIL  เขียนเกิน n=%zu (index %zu กลายเป็น 0x%02X)\n",
+				n, i, dst_ft[i]);
+			break ;
+		}
+	}
+	/* เช็ค src ไม่ถูกแก้ (เฉพาะเคสที่เป็น string จริง) */
+	if (n < BUF_SZ && memcmp(src_copy, src, n) != 0)
+	{
+		ok = 0;
+		printf("FAIL  มีการแก้ src!\n");
+	}
+	g_total++;
+	if (ok)
+		printf("PASS  memcpy(n=%zu)\n", n);
+	else
+		g_pass--; /* นับ FAIL ด้านบนแล้ว ให้ g_pass ยังนับเฉพาะ PASS จริง */
+	if (ok)
+		g_pass++;
+}
+
+int	main(void)
+{
+	char		str1[] = "hello world";
+	char		embedded[] = "ab\0cd";
+	unsigned char	bin[16];
+	unsigned char	big[100];
+	size_t		i;
+
+	printf("--- เคส string ---\n");
+	test_case(str1, 11);            /* copy ทั้ง string รวม \0 */
+	test_case(str1, 5);             /* copy บางส่วน "hello" */
+	test_case(str1, 0);             /* n=0 → ไม่ทำอะไร */
+	test_case(str1, 1);             /* แค่ 'h' */
+
+	printf("--- เคส \\0 กลางทาง (memcpy ต้องไม่หยุด) ---\n");
+	test_case(embedded, 5);         /* "ab\0cd" ครบ 5 bytes */
+	test_case(embedded, 3);         /* "ab\0" */
+
+	printf("--- เคส binary (byte สูง / ศูนย์) ---\n");
+	for (i = 0; i < 16; i++)
+		bin[i] = (unsigned char)(i * 17);  /* 0,17,34,...,0xFF */
+	test_case(bin, 16);
+	test_case(bin, 7);              /* ครึ่งเดียว */
+	test_case(bin, 0);
+
+	printf("--- เคสยาว 100 ตัว ---\n");
+	for (i = 0; i < 100; i++)
+		big[i] = 'a' + (i % 26);
+	test_case(big, 100);
+	test_case(big, 99);             /* ไม่รวม \0 (ไม่มี \0 ใน big) */
+
+	printf("\nผลรวม: %d/%d ผ่าน\n", g_pass, g_total);
+	return (g_pass == g_total ? 0 : 1);
+}
