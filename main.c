@@ -1,66 +1,71 @@
 /* ============================================================
-**  test main สำหรับ ft_strlcat — เทียบกับ libc strlcat
-**  compile:  gcc -Wall -Wextra -Werror main.c ft_strlcat.c ft_strlen.c -o test_strlcat
-**  run:      ./test_strlcat   (Windows: test_strlcat.exe)
-**  วิธีอ่าน: PASS = return ตรง libc + buffer ตรงกันทั้งก้อน (ต่อท้ายถูก + ไม่เขียนเกิน)
+**  test main สำหรับ ft_strnstr — เทียบกับ reference (glibc ไม่มี strnstr)
+**  compile:  gcc -Wall -Wextra -Werror main.c ft_strnstr.c ft_strlen.c -o test_strnstr
+**  run:      ./test_strnstr   (Windows: test_strnstr.exe)
+**  วิธีอ่าน: PASS = คืน NULL ตรงกัน / เจอที่ offset ตรงกัน (เทียบตำแหน่ง pointer)
 ** ============================================================ */
 #include <stdio.h>
 #include <string.h>
 
-size_t	ft_strlcat(char *dst, const char *src, size_t dstsize);
+char	*ft_strnstr(const char *haystack, const char *needle, size_t len);
+
+/* reference strnstr — glibc/WSL ไม่มี strnstr (เป็น BSD function)
+** เขียนจำลองตาม man page เพื่อใช้เทียบใน test เท่านั้น (ไม่ใช่ code ส่ง!) */
+static char	*ref_strnstr(const char *big, const char *little, size_t len)
+{
+	size_t	i;
+	size_t	j;
+
+	if (little[0] == '\0')
+		return ((char *)big);
+	i = 0;
+	while (big[i] != '\0' && i < len)
+	{
+		j = 0;
+		while (big[i + j] == little[j] && i + j < len)
+		{
+			if (little[j + 1] == '\0')
+				return ((char *)(big + i));
+			j++;
+		}
+		i++;
+	}
+	return (NULL);
+}
 
 static int	g_pass;
 static int	g_total;
 static int	g_total_cases;
 
-#define	BUF_SZ	128
-
-/* เติม 0xAA แล้ววาง dst_init ลงไป (ปิด \0) → เรียก libc/ft แล้วเทียบทั้ง buffer
-** จับ: ตำแหน่ง \0 ถูก + ต่อท้ายถูก + ไม่เขียนเกิน dstsize */
-static void	test_case(const char *dst_init, const char *src, size_t dstsize,
+static void	test_case(const char *hay, const char *needle, size_t len,
 			const char *label)
 {
-	char	dst_ft[BUF_SZ];
-	char	dst_libc[BUF_SZ];
-	size_t	ret_ft;
-	size_t	ret_libc;
-	size_t	i;
+	char	*got;
+	char	*exp;
+	size_t	off_got;
+	size_t	off_exp;
 	int	ok;
 
-	for (i = 0; i < BUF_SZ; i++)
-	{
-		dst_ft[i] = 0xAA;
-		dst_libc[i] = 0xAA;
-	}
-	for (i = 0; dst_init[i] != '\0'; i++)
-	{
-		dst_ft[i] = dst_init[i];
-		dst_libc[i] = dst_init[i];
-	}
-	dst_ft[i] = '\0';
-	dst_libc[i] = '\0';
-	ret_libc = strlcat(dst_libc, src, dstsize);
-	ret_ft = ft_strlcat(dst_ft, src, dstsize);
+	got = ft_strnstr(hay, needle, len);
+	exp = ref_strnstr(hay, needle, len);
 	g_total++;
 	ok = 1;
-	if (ret_ft != ret_libc)
+	if ((got == NULL) != (exp == NULL))
 	{
 		ok = 0;
-		printf("       ✗ return ผิด: ft=%zu libc=%zu\n", ret_ft, ret_libc);
+		printf("       ✗ คืน NULL ไม่ตรง: ft=%s libc=%s\n",
+			got == NULL ? "NULL" : "found",
+			exp == NULL ? "NULL" : "found");
 	}
-	if (memcmp(dst_ft, dst_libc, BUF_SZ) != 0)
+	else if (got != NULL)
 	{
-		ok = 0;
-		printf("       ✗ buffer ไม่ตรง libc — ต่อผิดที่ หรือเขียนเกิน?\n");
-		for (i = 0; i < BUF_SZ; i++)
+		off_got = (size_t)(got - hay);
+		off_exp = (size_t)(exp - hay);
+		if (off_got != off_exp)
 		{
-			if (dst_ft[i] != dst_libc[i])
-			{
-				printf("         จุดแรกที่ต่าง: index %zu ft=0x%02X libc=0x%02X\n",
-					i, (unsigned char)dst_ft[i],
-					(unsigned char)dst_libc[i]);
-				break ;
-			}
+			ok = 0;
+			printf("       ✗ เจอคนละตำแหน่ง: ft=offset %zu libc=offset %zu\n",
+				off_got, off_exp);
 		}
 	}
 	if (ok)
@@ -74,18 +79,19 @@ static void	test_case(const char *dst_init, const char *src, size_t dstsize,
 
 int	main(void)
 {
-	g_total_cases = 10;
-	printf("ft_strlcat — เทียบกับ libc strlcat (%d cases)\n", g_total_cases);
-	test_case("Hello", " World", 20, "append ปกติ (ที่เหลือพอ)");
-	test_case("Hello", " World", 11, "พอดีเป๊ะ = len รวม + 1");
-	test_case("Hello", " World", 8, "ตัด (ต่อได้ 2 ตัว)");
-	test_case("", "abc", 10, "dst ว่าง");
-	test_case("", "abc", 0, "dst ว่าง + size 0");
-	test_case("Hello", " World", 5, "dstsize = len(dst) — ห้ามแตะ!");
-	test_case("Hello", " World", 6, "dstsize = len(dst)+1 — ต่อไม่ได้เลย");
-	test_case("Hello", "", 10, "src ว่าง");
-	test_case("Hello", " World", 1, "dstsize < len(dst) — ห้ามแตะ!");
-	test_case("Hello", " World", 4, "dstsize น้อยกว่า len(dst) อีก");
+	g_total_cases = 11;
+	printf("ft_strnstr — เทียบกับ reference (%d cases)\n", g_total_cases);
+	test_case("Hello World", "World", 20, "เจอกลาง len พอ");
+	test_case("Hello World", "Hello", 20, "เจอที่ต้น");
+	test_case("Hello World", "xyz", 20, "ไม่เจอเลย");
+	test_case("Hello World", "", 20, "needle ว่าง → คืน haystack");
+	test_case("Hello World", "World", 0, "len = 0 → NULL");
+	test_case("Hello World", "World", 8, "needle เกิน len (6+5 > 8) → NULL");
+	test_case("Hello World", "World", 11, "needle พอดีใน len (6+5 = 11)");
+	test_case("abcabc", "abc", 4, "เจอที่ 0 แต่ตัวที่ 3 เกิน len");
+	test_case("abc", "abcdef", 20, "needle ยาวกว่า haystack → NULL");
+	test_case("abc\0def", "def", 20, "หลัง \\0 ของ haystack → NULL");
+	test_case("Hello World", "World", 9, "len 9 (> 6+5? ไม่ 9 < 11) → NULL");
 	if (g_pass == g_total)
 		printf("✅ PASSED %d/%d\n", g_pass, g_total);
 	else
