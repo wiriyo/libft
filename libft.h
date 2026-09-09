@@ -6,7 +6,7 @@
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/24 14:04:08 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/09/09 12:17:54 by awiriyok         ###   ########.fr       */
+/*   Updated: 2026/09/09 13:18:54 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ int ft_isalnum(int c);
 int ft_isascii(int c);
 int ft_isprint(int c);
 size_t ft_strlen(const char *s);
+size_t ft_strlcpy(char *dst, const char *src, size_t dstsize);
 void ft_putchar(char c);
 void ft_putstr(char *s);
 void ft_putendl(char *s);
