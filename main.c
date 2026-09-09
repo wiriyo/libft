@@ -1,51 +1,49 @@
 /* ============================================================
-**  test main สำหรับ ft_strdup — เทียบกับ libc strdup
-**  compile:  gcc -Wall -Wextra -Werror main.c ft_strdup.c -o test_strdup
-**  run:      ./test_strdup   (Windows: test_strdup.exe)
-**  วิธีอ่าน: PASS = ได้ pointer ใหม่ (≠ s1) + เนื้อหาตรง libc ครบรวม \0
+**  test main สำหรับ ft_calloc — เทียบกับ libc calloc
+**  compile:  gcc -Wall -Wextra -Werror main.c ft_calloc.c ft_bzero.c -o test_calloc
+**  run:      ./test_calloc   (Windows: test_calloc.exe)
+**  วิธีอ่าน: PASS = ได้ pointer ไม่ NULL + ทุก byte เป็น 0 ตรง libc
 ** ============================================================ */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-char	*ft_strdup(const char *s1);
+void	*ft_calloc(size_t count, size_t size);
 
 static int	g_pass;
 static int	g_total;
 static int	g_total_cases;
 
-/* เทียบ ft_strdup กับ libc: เช็ค 4 อย่าง
-** 1. ไม่คืน NULL          2. เป็น pointer ใหม่ (malloc ≠ s1)
-** 3. เนื้อหาเท่ากัน (strcmp)  4. ครบรวม \0 (memcmp len+1) */
-static void	test_case(const char *s1, const char *label)
+/* เทียบ ft_calloc กับ libc: จอง count*size เท่ากัน แล้วเช็ค
+** 1. ถ้า libc ได้ pointer (ไม่ NULL) → ft ต้องได้ด้วย
+** 2. ทุก byte ในช่วง count*size ต้องตรงกัน (libc zero ให้ → ft ต้อง zero ด้วย)
+** 3. กรณี count*size = 0: glibc คืน pointer ที่ free ได้ → ต้องไม่ NULL เหมือนกัน */
+static void	test_case(size_t count, size_t size, const char *label)
 {
-	char	*got;
-	char	*exp;
-	int	ok;
+	unsigned char	*got;
+	unsigned char	*exp;
+	size_t		n;
+	int		ok;
 
-	got = ft_strdup(s1);
-	exp = strdup(s1);
+	n = count * size;
+	got = ft_calloc(count, size);
+	exp = calloc(count, size);
 	g_total++;
 	ok = 1;
-	if (got == NULL)
+	if (exp != NULL && got == NULL)
 	{
 		ok = 0;
-		printf("       ✗ ft_strdup คืน NULL\n");
+		printf("       ✗ ft คืน NULL แต่ libc คืน pointer (จอง %zu bytes)\n", n);
 	}
-	if (ok && got == s1)
+	if (exp == NULL && got != NULL)
 	{
 		ok = 0;
-		printf("       ✗ คืน pointer เดิม — ต้อง malloc ที่อยู่ใหม่!\n");
+		printf("       ✗ ft คืน pointer แต่ libc คืน NULL — จองเกินที่ควร?\n");
 	}
-	if (ok && strcmp(got, exp) != 0)
+	if (ok && n > 0 && memcmp(got, exp, n) != 0)
 	{
 		ok = 0;
-		printf("       ✗ เนื้อหาไม่ตรง: ft=\"%s\" libc=\"%s\"\n", got, exp);
-	}
-	if (ok && memcmp(got, exp, strlen(exp) + 1) != 0)
-	{
-		ok = 0;
-		printf("       ✗ ต่างกันรวม \\0 (memcmp len+1)\n");
+		printf("       ✗ มี byte ที่ไม่ตรง libc — ลืม zero หรือ zero ไม่ครบ?\n");
 	}
 	if (ok)
 	{
@@ -60,16 +58,19 @@ static void	test_case(const char *s1, const char *label)
 
 int	main(void)
 {
-	g_total_cases = 5;
-	printf("ft_strdup — เทียบกับ libc strdup (%d cases)\n", g_total_cases);
-	test_case("hello world", "copy 'hello world'");
-	test_case("", "empty string (len 0)");
-	test_case("a", "single char");
-	test_case("42 Bangkok rules!", "long with spaces");
-	test_case("tab\tand\nnewline", "escape chars");
+	g_total_cases = 7;
+	printf("ft_calloc — เทียบกับ libc calloc (%d cases)\n", g_total_cases);
+	test_case(5, sizeof(int), "5 x int (20 bytes)");
+	test_case(1, 1, "1 x 1 byte");
+	test_case(10, sizeof(char), "10 chars");
+	test_case(2, sizeof(double), "2 x double (16 bytes)");
+	test_case(0, 10, "count = 0 (ต้องได้ pointer)");
+	test_case(10, 0, "size = 0 (ต้องได้ pointer)");
+	test_case(100, 1000, "100 x 1000 (100k bytes)");
 	if (g_pass == g_total)
 		printf("✅ PASSED %d/%d\n", g_pass, g_total);
 	else
-		printf("❌ FAILED %d/%d\n", g_pass, g_total);
+		printf("❌ FAILED %d/%d — ดูเคส FAIL แล้วแก้ฟังก์ชันต่อได้เลย!\n",
+			g_pass, g_total);
 	return (g_pass == g_total ? 0 : 1);
 }

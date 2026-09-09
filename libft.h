@@ -6,7 +6,7 @@
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/24 14:04:08 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/09/09 11:48:17 by awiriyok         ###   ########.fr       */
+/*   Updated: 2026/09/09 12:17:54 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ char *ft_strchr(const char *s, int c);
 char *ft_strrchr(const char* s, int c);
 char *ft_strdup(const char *s1);
 int ft_strncmp(const char *s1, const char *s2, size_t n);
+void *ft_calloc(size_t count, size_t size);
 int ft_toupper(int c);
 int ft_tolower(int c);
 
