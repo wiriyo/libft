@@ -1,0 +1,80 @@
+/* ============================================================
+**  test main สำหรับ ft_memcmp — เทียบกับ libc memcmp
+**  compile:  gcc -Wall -Wextra -Werror main.c ft_memcmp.c -o test_memcmp
+**  run:      ./test_memcmp   (Windows: test_memcmp.exe)
+**  วิธีอ่าน: PASS = ค่า return ตรง libc (0 = เท่ากันครบ n, ± = ผลต่าง byte แรก)
+** ============================================================ */
+#include <stdio.h>
+#include <string.h>
+
+int	ft_memcmp(const void *s1, const void *s2, size_t n);
+
+static int	g_pass;
+static int	g_total;
+static int	g_total_cases;
+
+/* เทียบ ft_memcmp กับ libc: buffer เดียวกัน + n เท่ากัน
+** return ต้องเท่ากันเป๊ะ (0 / บวก / ลบ) — ความหมายของ ± ไม่ต้องเหมือนกัน
+** ขอแค่เครื่องหมายและค่าตรง libc ก็เพียงพอ */
+static void	test_case(const void *s1, const void *s2, size_t n,
+			const char *label)
+{
+	int	got;
+	int	exp;
+
+	got = ft_memcmp(s1, s2, n);
+	exp = memcmp(s1, s2, n);
+	g_total++;
+	if (got == exp)
+	{
+		g_pass++;
+		printf("PASS  [%02d/%02d] %s (got %d exp %d)\n",
+			g_total, g_total_cases, label, got, exp);
+	}
+	else
+		printf("FAIL  [%02d/%02d] %s (got %d exp %d)\n",
+			g_total, g_total_cases, label, got, exp);
+}
+
+int	main(void)
+{
+	/* เคส byte สูง (0x80) — signed char trap: ต้องได้ +128 ไม่ใช่ -128 */
+	unsigned char	hi_a[2];
+	unsigned char	hi_b[2];
+	/* เคส \0 กลางทาง — memory ดิบ ไม่หยุดที่ \0 ต้องเทียบครบ n */
+	unsigned char	nul_a[6];
+	unsigned char	nul_b[6];
+
+	hi_a[0] = 0x80;
+	hi_a[1] = 0x41;
+	hi_b[0] = 0x00;
+	hi_b[1] = 0x41;
+	nul_a[0] = 'a';
+	nul_a[1] = 0;
+	nul_a[2] = 'b';
+	nul_a[3] = 'c';
+	nul_a[4] = 'd';
+	nul_a[5] = 'e';
+	nul_b[0] = 'a';
+	nul_b[1] = 0;
+	nul_b[2] = 'b';
+	nul_b[3] = 'c';
+	nul_b[4] = 'd';
+	nul_b[5] = 'f';
+	g_total_cases = 8;
+	printf("ft_memcmp — เทียบกับ libc memcmp (%d cases)\n",
+		g_total_cases);
+	test_case("hello world", "hello world", 11, "equal 11 bytes");
+	test_case("Axxx", "Bxxx", 4, "diff at first byte");
+	test_case("abcXdef", "abcYdef", 7, "diff in middle (sign)");
+	test_case("abc", "xyz", 0, "n = 0");
+	test_case(hi_a, hi_b, 2, "high byte 0x80 unsigned trap");
+	test_case(nul_a, nul_b, 6, "nul mid — compare past it");
+	test_case("abcdef", "abcdeg", 6, "diff at last byte of n");
+	test_case("ab\0cd", "ab\0cd", 5, "equal past nul");
+	if (g_pass == g_total)
+		printf("✅ PASSED %d/%d\n", g_pass, g_total);
+	else
+		printf("❌ FAILED %d/%d\n", g_pass, g_total);
+	return (g_pass == g_total ? 0 : 1);
+}

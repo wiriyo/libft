@@ -1,65 +1,52 @@
 /* ============================================================
-**  test main สำหรับ ft_memmove — เทียบกับ libc memmove
-**  compile:  gcc -Wall -Wextra -Werror main.c ft_memmove.c -o test_memmove
-**  run:      ./test_memmove   (Windows: test_memmove.exe)
-**  วิธีอ่าน: PASS = ผลลัพธ์ตรง libc ทั้ง buffer + return ชี้ dst
+**  test main สำหรับ ft_strdup — เทียบกับ libc strdup
+**  compile:  gcc -Wall -Wextra -Werror main.c ft_strdup.c -o test_strdup
+**  run:      ./test_strdup   (Windows: test_strdup.exe)
+**  วิธีอ่าน: PASS = ได้ pointer ใหม่ (≠ s1) + เนื้อหาตรง libc ครบรวม \0
 ** ============================================================ */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
-void	*ft_memmove(void *dst, const void *src, size_t n);
+char	*ft_strdup(const char *s1);
 
 static int	g_pass;
 static int	g_total;
 static int	g_total_cases;
 
-#define	BUF_SZ	128
-
-/* เติม pattern ไม่ซ้ำระยะสั้น (i*7+3 mod 251) — ถ้าข้อมูลซ้ำกัน
-** overlap พังจะไม่ถูกจับได้ จึงต้องใช้ pattern ที่ไม่ซ้ำ */
-static void	fill_pattern(unsigned char *buf)
+/* เทียบ ft_strdup กับ libc: เช็ค 4 อย่าง
+** 1. ไม่คืน NULL          2. เป็น pointer ใหม่ (malloc ≠ s1)
+** 3. เนื้อหาเท่ากัน (strcmp)  4. ครบรวม \0 (memcmp len+1) */
+static void	test_case(const char *s1, const char *label)
 {
-	size_t	i;
+	char	*got;
+	char	*exp;
+	int	ok;
 
-	for (i = 0; i < BUF_SZ; i++)
-		buf[i] = (unsigned char)((i * 7 + 3) % 251);
-}
-
-/* ====== เคสที่ 1: copy ระหว่าง buffer คนละอัน (ไม่ overlap) ====== */
-static void	test_copy(const unsigned char *src, size_t src_sz,
-			const char *label)
-{
-	unsigned char	dst_ft[BUF_SZ];
-	unsigned char	dst_libc[BUF_SZ];
-	size_t		n;
-	size_t		i;
-	int		ok;
-
-	n = src_sz;
-	for (i = 0; i < BUF_SZ; i++)
-	{
-		dst_ft[i] = 0xAA;
-		dst_libc[i] = 0xAA;
-	}
-	memmove(dst_libc, src, n);
-	if (ft_memmove(dst_ft, src, n) != (void *)dst_ft)
-	{
-		printf("FAIL  [%02d/%02d] %s (return ไม่ชี้ dst)\n",
-			g_total + 1, g_total_cases, label);
-		g_total++;
-		return ;
-	}
-	ok = memcmp(dst_ft, dst_libc, n) == 0;
-	for (i = n; i < BUF_SZ; i++)
-	{
-		if (dst_ft[i] != 0xAA)
-		{
-			ok = 0;
-			printf("       ✗ เขียนเกิน n=%zu (index %zu)\n", n, i);
-			break ;
-		}
-	}
+	got = ft_strdup(s1);
+	exp = strdup(s1);
 	g_total++;
+	ok = 1;
+	if (got == NULL)
+	{
+		ok = 0;
+		printf("       ✗ ft_strdup คืน NULL\n");
+	}
+	if (ok && got == s1)
+	{
+		ok = 0;
+		printf("       ✗ คืน pointer เดิม — ต้อง malloc ที่อยู่ใหม่!\n");
+	}
+	if (ok && strcmp(got, exp) != 0)
+	{
+		ok = 0;
+		printf("       ✗ เนื้อหาไม่ตรง: ft=\"%s\" libc=\"%s\"\n", got, exp);
+	}
+	if (ok && memcmp(got, exp, strlen(exp) + 1) != 0)
+	{
+		ok = 0;
+		printf("       ✗ ต่างกันรวม \\0 (memcmp len+1)\n");
+	}
 	if (ok)
 	{
 		g_pass++;
@@ -67,88 +54,22 @@ static void	test_copy(const unsigned char *src, size_t src_sz,
 	}
 	else
 		printf("FAIL  [%02d/%02d] %s\n", g_total, g_total_cases, label);
-}
-
-/* ====== เคสที่ 2: overlap ใน buffer เดียว ======
-** buffer เต็มด้วย pattern -> ft_memmove(buf+dst_off, buf+src_off, n)
-** เทียบผลกับ libc memmove ทั้ง 128 ตัว (buffer โดนเลื่อน อาจกระทบรอบข้าง) */
-static void	test_overlap(size_t dst_off, size_t src_off, size_t n,
-			const char *label)
-{
-	unsigned char	ft_buf[BUF_SZ];
-	unsigned char	libc_buf[BUF_SZ];
-	size_t		i;
-	int		ok;
-
-	fill_pattern(ft_buf);
-	fill_pattern(libc_buf);
-	if (ft_memmove(ft_buf + dst_off, ft_buf + src_off, n)
-		!= (void *)(ft_buf + dst_off))
-	{
-		printf("FAIL  [%02d/%02d] %s (return ไม่ชี้ dst)\n",
-			g_total + 1, g_total_cases, label);
-		g_total++;
-		return ;
-	}
-	memmove(libc_buf + dst_off, libc_buf + src_off, n);
-	ok = memcmp(ft_buf, libc_buf, BUF_SZ) == 0;
-	g_total++;
-	if (ok)
-	{
-		g_pass++;
-		printf("PASS  [%02d/%02d] %s\n", g_total, g_total_cases, label);
-	}
-	else
-	{
-		printf("FAIL  [%02d/%02d] %s\n", g_total, g_total_cases, label);
-		for (i = 0; i < BUF_SZ; i++)
-		{
-			if (ft_buf[i] != libc_buf[i])
-			{
-				printf("       ✗ ตำแหน่งแรกที่ต่าง = index %zu"
-					" (ft=0x%02X libc=0x%02X)\n",
-					i, ft_buf[i], libc_buf[i]);
-				break ;
-			}
-		}
-	}
+	free(got);
+	free(exp);
 }
 
 int	main(void)
 {
-	char		str[] = "hello world";
-	unsigned char	bin[16];
-	size_t		i;
-
-	g_total_cases = 15;
-
-	printf("=== TEST ft_memmove — เทียบกับ libc ===\n\n");
-
-	printf("--- เคสไม่ overlap (buffer คนละอัน) ---\n");
-	test_copy((unsigned char *)str, 11, "copy 'hello world' 11 bytes");
-	test_copy((unsigned char *)str, 5, "copy 5 bytes แรก -> 'hello'");
-	test_copy((unsigned char *)str, 0, "n=0 -> ไม่ทำอะไร");
-	for (i = 0; i < 16; i++)
-		bin[i] = (unsigned char)(i * 17);
-	test_copy(bin, 16, "binary 16 bytes");
-
-	printf("\n--- เคส overlap: ขยับขวา (dst อยู่หลัง src — ต้องวนถอยหลัง!) ---\n");
-	test_overlap(3, 0, 11, "ขยับ 'hello world' ขวา 3 ช่อง (dst=3,src=0,n=11)");
-	test_overlap(1, 0, 5,  "ขยับ 'hello' ขวา 1 ช่อง (dst=1,src=0,n=5) ★คลาสสิก");
-	test_overlap(6, 4, 8,  "เหลื่อมบางส่วน: ขวา 2 (dst=6,src=4,n=8)");
-	test_overlap(1, 0, 64, "ขยับขวา 1 ช่อง ก้อนใหญ่ 64 bytes");
-
-	printf("\n--- เคส overlap: ขยับซ้าย (dst อยู่ก่อน src — วนหน้าหลังได้) ---\n");
-	test_overlap(0, 3, 11, "ขยับ 'hello world' ซ้าย 3 ช่อง (dst=0,src=3,n=11)");
-	test_overlap(0, 1, 5,  "ขยับ 'hello' ซ้าย 1 ช่อง (dst=0,src=1,n=5) ★คลาสสิก");
-	test_overlap(2, 8, 10, "เหลื่อมบางส่วน: ซ้าย 6 (dst=2,src=8,n=10)");
-	test_overlap(0, 1, 64, "ขยับซ้าย 1 ช่อง ก้อนใหญ่ 64 bytes");
-
-	printf("\n--- เคส edge ---\n");
-	test_overlap(5, 5, 10, "dst == src (dst=5,src=5) -> ไม่ควรเพี้ยน");
-	test_overlap(5, 0, 0,  "n=0 แม้ตำแหน่งต่าง -> ไม่ทำอะไร");
-	test_overlap(0, 1, 127, "ขยับซ้าย 1 เกือบเต็ม buffer (127 bytes)");
-
-	printf("\nผลรวม: %d/%d ผ่าน\n", g_pass, g_total);
+	g_total_cases = 5;
+	printf("ft_strdup — เทียบกับ libc strdup (%d cases)\n", g_total_cases);
+	test_case("hello world", "copy 'hello world'");
+	test_case("", "empty string (len 0)");
+	test_case("a", "single char");
+	test_case("42 Bangkok rules!", "long with spaces");
+	test_case("tab\tand\nnewline", "escape chars");
+	if (g_pass == g_total)
+		printf("✅ PASSED %d/%d\n", g_pass, g_total);
+	else
+		printf("❌ FAILED %d/%d\n", g_pass, g_total);
 	return (g_pass == g_total ? 0 : 1);
 }
