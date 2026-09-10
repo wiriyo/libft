@@ -6,7 +6,7 @@
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/24 14:04:08 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/09/09 19:00:41 by awiriyok         ###   ########.fr       */
+/*   Updated: 2026/09/10 15:04:34 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,10 @@ size_t ft_strlen(const char *s);
 size_t ft_strlcpy(char *dst, const char *src, size_t dstsize);
 size_t ft_strlcat(char *dst, const char *src, size_t dstsize);
 void ft_putchar(char c);
+void ft_putchar_fd(char c, int fd);
+void ft_putendl_fd(char *s, int fd);
+void ft_putnbr_fd(int n, int fd);
+void ft_putstr_fd(char *s, int fd);
 void ft_putstr(char *s);
 void ft_putendl(char *s);
 void ft_putnbr(int n);
