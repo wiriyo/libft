@@ -36,8 +36,8 @@ void	ft_putchar_fd(char c, int fd)
 ## ขั้นตอนตอนนี้ (ทำทีละตัว)
 
 1. เปิด `ft_putchar_fd.c` → อ่านคำอธิบายบนสุด → เติม 1 บรรทัดใน TODO
-2. รันเทสต์: `gcc -Wall -Wextra -Werror main.c ft_putchar_fd.c -o t1` — ถ้าติด undefined reference เพราะไฟล์อื่นยังว่าง ให้ใช้คำสั่งเต็ม:
-   `gcc -Wall -Wextra -Werror main.c ft_putchar_fd.c ft_putstr_fd.c ft_putendl_fd.c ft_putnbr_fd.c -o test_putfd`
+2. รันเทสต์ — **สำคัญ: ต้องรวมไฟล์ .c ที่ฟังก์ชันของพี่เรียกใช้ด้วย** (เช่น `ft_substr` เรียก `ft_strlen` → ต้องใส่ `ft_strlen.c` ไม่งั้น linker ฟ้อง undefined reference):
+   `gcc -Wall -Wextra -Werror main.c ft_substr.c ft_strlen.c -o test_substr`
 3. `./test_putfd` → ดู FAIL ค่อยๆ เปลี่ยนเป็น PASS
 
 ## 🧠 ภาพเดียวที่ต้องจำ

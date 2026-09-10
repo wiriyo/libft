@@ -1,138 +1,96 @@
 /* ============================================================
-**  test main สำหรับ ft_put*_fd (Part 2 — ชุดแรก)
-**  compile:  gcc -Wall -Wextra -Werror main.c ft_putchar_fd.c \
-**            ft_putstr_fd.c ft_putendl_fd.c ft_putnbr_fd.c -o test_putfd
-**  run:      ./test_putfd   (Windows: test_putfd.exe)
-**  วิธีอ่าน: PASS = byte ที่เขียนผ่าน fd ตรงกับที่คาด (เทียบ byte ต่อ byte)
-**  หลักการ: เปิดไฟล์ได้ fd → เรียก ft_*_fd → close → เปิดอ่าน → เทียบ
+**  test main สำหรับ ft_strjoin (Part 2 — ตัวที่ 6)
+**  compile:  gcc -Wall -Wextra -Werror main.c ft_strjoin.c ft_strlen.c -o test_strjoin
+**  run:      ./test_strjoin
+**  วิธีอ่าน: PASS = สตริงที่ได้ตรงกับที่คาด + ต้นฉบับไม่ถูกแก้ + (เคส 8) ต้องเป็นก้อนใหม่
 ** ============================================================ */
-#include <fcntl.h>
-#include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
-void	ft_putchar_fd(char c, int fd);
-void	ft_putstr_fd(char *s, int fd);
-void	ft_putendl_fd(char *s, int fd);
-void	ft_putnbr_fd(int n, int fd);
+char	*ft_strjoin(char const *s1, char const *s2);
 
 static int	g_pass;
 static int	g_total;
 static int	g_cases;
 
-static int	open_tmp(void)
+static void	check(const char *label, char *got, const char *exp,
+		char *s1, const char *s1_orig, char *s2, const char *s2_orig,
+		int must_differ)
 {
-	return (open("test_fd_out.txt", O_CREAT | O_WRONLY | O_TRUNC, 0644));
-}
+	int	ok;
 
-static int	read_tmp(char *buf, int size)
-{
-	int	fd;
-	int	n;
-
-	fd = open("test_fd_out.txt", O_RDONLY);
-	if (fd < 0)
-		return (-1);
-	n = read(fd, buf, size);
-	close(fd);
-	return (n);
-}
-
-static void	check(const char *label, const char *exp, int exp_len)
-{
-	char	buf[256];
-	int		n;
-
-	n = read_tmp(buf, sizeof(buf));
 	g_total++;
-	if (n == exp_len && (exp_len == 0 || memcmp(buf, exp, exp_len) == 0))
+	ok = 1;
+	if (got == NULL)
+		ok = 0;
+	else if (strcmp(got, exp) != 0)
+		ok = 0;
+	if (strcmp(s1, s1_orig) != 0 || strcmp(s2, s2_orig) != 0)
+		ok = 0;
+	if (must_differ && (got == s1 || got == s2))
+		ok = 0;
+	if (ok)
 	{
 		g_pass++;
-		printf("PASS  [%02d/%02d] %-40s (len=%d)\n",
-			g_total, g_cases, label, n);
+		printf("PASS  [%02d/%02d] %-34s -> \"%.60s\"\n",
+			g_total, g_cases, label, got);
 	}
+	else if (got == NULL)
+		printf("FAIL  [%02d/%02d] %-34s (ได้ NULL, คาด \"%s\")\n",
+			g_total, g_cases, label, exp);
 	else
-		printf("FAIL  [%02d/%02d] %-40s (exp len=%d got len=%d)\n",
-			g_total, g_cases, label, exp_len, n);
+		printf("FAIL  [%02d/%02d] %-34s (ได้ \"%.60s\" คาด \"%s\"%s%s)\n",
+			g_total, g_cases, label, got, exp,
+			(strcmp(s1, s1_orig) != 0 || strcmp(s2, s2_orig) != 0)
+			? " [ต้นฉบับถูกแก้!]" : "",
+			(must_differ && (got == s1 || got == s2)) ? " [คืน pointer เดิม]" : "");
+	if (got != NULL)
+		free(got);
 }
 
 int	main(void)
 {
-	int	fd;
+	char	s1[] = "Hello ";
+	char	s2[] = "World";
+	char	s3[] = "";
+	char	s4[] = "abc";
+	char	s5[] = "abc";
+	char	s6[] = "";
+	char	s7[] = "";
+	char	s8[] = "";
+	char	s9[] = "42";
+	char	s10[] = " Bangkok";
+	char	s11[] = "a";
+	char	s12[] = "b";
+	char	s13[] = "0123456789";
+	char	s14[] = "abcdefghijklmnopqrstuvwxyz";
+	char	s15[] = "Hello";
+	char	s16[] = "World";
+	char	s17[] = " ";
+	char	s18[] = " ";
 
-	g_cases = 17;
-	printf("ft_put*_fd — เขียนผ่าน fd แล้วอ่านไฟล์เทียบ (%d cases)\n",
-		g_cases);
-	fd = open_tmp();
-	ft_putchar_fd('A', fd);
-	close(fd);
-	check("putchar_fd 'A'", "A", 1);
-	fd = open_tmp();
-	ft_putchar_fd('\n', fd);
-	close(fd);
-	check("putchar_fd newline", "\n", 1);
-	fd = open_tmp();
-	ft_putchar_fd('\0', fd);
-	close(fd);
-	check("putchar_fd \\0 (ยังต้องเขียน 1 byte)", "\0", 1);
-	fd = open_tmp();
-	ft_putchar_fd((char)-1, fd);
-	close(fd);
-	check("putchar_fd byte 0xFF", "\xff", 1);
-	fd = open_tmp();
-	ft_putstr_fd("Hello", fd);
-	close(fd);
-	check("putstr_fd \"Hello\"", "Hello", 5);
-	fd = open_tmp();
-	ft_putstr_fd("", fd);
-	close(fd);
-	check("putstr_fd \"\" (ไม่เขียนอะไรเลย)", "", 0);
-	fd = open_tmp();
-	ft_putstr_fd("42 Bangkok", fd);
-	close(fd);
-	check("putstr_fd \"42 Bangkok\"", "42 Bangkok", 10);
-	fd = open_tmp();
-	ft_putendl_fd("Hello", fd);
-	close(fd);
-	check("putendl_fd \"Hello\" → Hello\\n", "Hello\n", 6);
-	fd = open_tmp();
-	ft_putendl_fd("", fd);
-	close(fd);
-	check("putendl_fd \"\" → แค่ \\n", "\n", 1);
-	fd = open_tmp();
-	ft_putnbr_fd(0, fd);
-	close(fd);
-	check("putnbr_fd 0", "0", 1);
-	fd = open_tmp();
-	ft_putnbr_fd(42, fd);
-	close(fd);
-	check("putnbr_fd 42", "42", 2);
-	fd = open_tmp();
-	ft_putnbr_fd(-42, fd);
-	close(fd);
-	check("putnbr_fd -42", "-42", 3);
-	fd = open_tmp();
-	ft_putnbr_fd(1000000, fd);
-	close(fd);
-	check("putnbr_fd 1000000", "1000000", 7);
-	fd = open_tmp();
-	ft_putnbr_fd(INT_MAX, fd);
-	close(fd);
-	check("putnbr_fd INT_MAX", "2147483647", 10);
-	fd = open_tmp();
-	ft_putnbr_fd(INT_MIN, fd);
-	close(fd);
-	check("putnbr_fd INT_MIN (trap!)", "-2147483648", 11);
-	fd = open_tmp();
-	ft_putnbr_fd(-1, fd);
-	close(fd);
-	check("putnbr_fd -1", "-1", 2);
-	fd = open_tmp();
-	ft_putstr_fd("abc", fd);
-	ft_putendl_fd("def", fd);
-	close(fd);
-	check("putstr_fd+putendl_fd เขียนต่อ fd เดียว", "abcdef\n", 7);
+	g_cases = 9;
+	printf("ft_strjoin — ต่อสตริง 2 ก้อนเป็นก้อนใหม่ (%d cases)\n", g_cases);
+	check("ต่อปกติ \"Hello \"+\"World\"", ft_strjoin(s1, s2),
+		"Hello World", s1, "Hello ", s2, "World", 0);
+	check("s1 ว่าง \"\"+\"abc\"", ft_strjoin(s3, s4),
+		"abc", s3, "", s4, "abc", 0);
+	check("s2 ว่าง \"abc\"+\"\"", ft_strjoin(s5, s6),
+		"abc", s5, "abc", s6, "", 0);
+	check("ว่างทั้งคู่ \"\"+\"\"", ft_strjoin(s7, s8),
+		"", s7, "", s8, "", 0);
+	check("มีช่องว่าง \"42\"+\" Bangkok\"", ft_strjoin(s9, s10),
+		"42 Bangkok", s9, "42", s10, " Bangkok", 0);
+	check("ตัวละ 1 (\"a\"+\"b\")", ft_strjoin(s11, s12),
+		"ab", s11, "a", s12, "b", 0);
+	check("ยาว 10+26", ft_strjoin(s13, s14),
+		"0123456789abcdefghijklmnopqrstuvwxyz",
+		s13, "0123456789", s14, "abcdefghijklmnopqrstuvwxyz", 0);
+	check("ต้องเป็นก้อนใหม่ (ไม่ใช่ s1/s2)", ft_strjoin(s15, s16),
+		"HelloWorld", s15, "Hello", s16, "World", 1);
+	check("ช่องว่าง 2 ตัว \" \"+\" \"", ft_strjoin(s17, s18),
+		"  ", s17, " ", s18, " ", 0);
 	if (g_pass == g_total)
 		printf("✅ PASSED %d/%d\n", g_pass, g_total);
 	else

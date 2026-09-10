@@ -1,0 +1,102 @@
+/* ============================================================
+**  test main สำหรับ ft_substr (Part 2 — ตัวที่ 5, malloc ⭐)
+**  compile:  gcc -Wall -Wextra -Werror main.c ft_substr.c ft_strlen.c -o test_substr
+**            (อย่าลืม ft_strlen.c ด้วย! ft_substr เรียก ft_strlen อยู่)
+**  run:      ./test_substr   (Windows: test_substr.exe)
+**  วิธีอ่าน: PASS = สตริงที่ได้ตรงกับที่คาด + ต้นฉบับ s ไม่ถูกแก้ + (เคส 10) ต้องเป็นก้อนใหม่
+** ============================================================ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char	*ft_substr(char const *s, unsigned int start, size_t len);
+
+static int	g_pass;
+static int	g_total;
+static int	g_cases;
+
+static void	check(const char *label, char *got, const char *exp,
+		char *s_arr, const char *s_orig, int must_differ)
+{
+	int	ok;
+
+	g_total++;
+	ok = 1;
+	if (got == NULL)
+		ok = 0;
+	else if (strcmp(got, exp) != 0)
+		ok = 0;
+	if (strcmp(s_arr, s_orig) != 0)
+		ok = 0;
+	if (must_differ && got == s_arr)
+		ok = 0;
+	if (ok)
+	{
+		g_pass++;
+		printf("PASS  [%02d/%02d] %-38s -> \"%.40s\"\n",
+			g_total, g_cases, label, got);
+	}
+	else if (got == NULL)
+		printf("FAIL  [%02d/%02d] %-38s (ได้ NULL, คาด \"%s\")\n",
+			g_total, g_cases, label, exp);
+	else
+		printf("FAIL  [%02d/%02d] %-38s (ได้ \"%.40s\" คาด \"%s\"%s%s)\n",
+			g_total, g_cases, label, got, exp,
+			(strcmp(s_arr, s_orig) != 0) ? " [s ถูกแก้!]" : "",
+			(must_differ && got == s_arr) ? " [คืน pointer เดิม]" : "");
+	if (got != NULL)
+		free(got);
+}
+
+int	main(void)
+{
+	char	s1[] = "Hello World";
+	char	s2[] = "Hello";
+	char	s3[] = "Hello";
+	char	s4[] = "Hello";
+	char	s5[] = "Hello";
+	char	s6[] = "Hello";
+	char	s7[] = "Hello";
+	char	s8[] = "";
+	char	s9[] = "42 Bangkok";
+	char	s10[] = "Hello";
+	char	s11[] = "Hello";
+	char	s12[] = "abcdef";
+	char	s13[] = "abcdef";
+
+	g_cases = 13;
+	printf("ft_substr — ตัดสตริงย่อย + จองหน่วยความจำใหม่ (%d cases)\n",
+		g_cases);
+	check("กลางคำ start=6 len=5", ft_substr(s1, 6, 5),
+		"World", s1, "Hello World", 0);
+	check("จากหัว start=0 len=5", ft_substr(s2, 0, 5),
+		"Hello", s2, "Hello", 0);
+	check("len ยาวเกินที่เหลือ (3,100)", ft_substr(s3, 3, 100),
+		"lo", s3, "Hello", 0);
+	check("start == strlen (5,3)", ft_substr(s4, 5, 3),
+		"", s4, "Hello", 0);
+	check("start เกิน strlen (99,3)", ft_substr(s5, 99, 3),
+		"", s5, "Hello", 0);
+	check("len = 0 ที่หัว (0,0)", ft_substr(s6, 0, 0),
+		"", s6, "Hello", 0);
+	check("len = 0 กลางคำ (2,0)", ft_substr(s7, 2, 0),
+		"", s7, "Hello", 0);
+	check("s ว่าง (\"\",0,5)", ft_substr(s8, 0, 5),
+		"", s8, "", 0);
+	check("กลางคำ (3,7)", ft_substr(s9, 3, 7),
+		"Bangkok", s9, "42 Bangkok", 0);
+	check("เต็มสตริง ต้องเป็นก้อนใหม่ (0,5)", ft_substr(s10, 0, 5),
+		"Hello", s10, "Hello", 1);
+	check("1 ตัว (1,1)", ft_substr(s11, 1, 1),
+		"e", s11, "Hello", 0);
+	check("กลาง (2,3)", ft_substr(s12, 2, 3),
+		"cde", s12, "abcdef", 0);
+	check("ถึงท้ายพอดี (3,3)", ft_substr(s13, 3, 3),
+		"def", s13, "abcdef", 0);
+	if (g_pass == g_total)
+		printf("✅ PASSED %d/%d\n", g_pass, g_total);
+	else
+		printf("❌ FAILED %d/%d — ดู FAIL แล้วแก้ฟังก์ชันต่อได้เลย!\n",
+			g_pass, g_total);
+	return (g_pass == g_total ? 0 : 1);
+}

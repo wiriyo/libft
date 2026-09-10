@@ -1,28 +1,42 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_putstr_fd.c                                     :+:      :+:    :+:   */
+/*   ft_substr.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/09/10 15:01:03 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/09/10 15:15:07 by awiriyok         ###   ########.fr       */
+/*   Created: 2026/09/10 17:26:20 by awiriyok          #+#    #+#             */
+/*   Updated: 2026/09/10 17:26:20 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <unistd.h>
 #include "libft.h"
+#include <stdlib.h>
 
-void	ft_putstr_fd(char *s, int fd)
+char	*ft_substr(char const *s, unsigned int start, size_t len)
 {
-	size_t	len;
+	size_t	slen;
+	size_t	min;
 	size_t	i;
+	char	*c;
 
-	len = ft_strlen(s);
 	i = 0;
-	while (i < len)
+	slen = ft_strlen(s);
+	if (start <= slen)
+		min = slen - start;
+	else
+		min = 0;
+	if (len < min)
+		min = len;
+	c = malloc(min + 1);
+	if (!c)
+		return (NULL);
+	while (i < min && i <= len)
 	{
-		ft_putchar_fd(s[i], fd);
+		c[i] = s[start];
 		i++;
+		start++;
 	}
+	c[i] = '\0';
+	return (c);
 }
