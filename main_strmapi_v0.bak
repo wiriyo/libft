@@ -1,0 +1,83 @@
+/* main.c — test spec: ft_strmapi (ไฟล์เทสต์ ห้ามส่ง! ลบก่อน submit)
+ * รัน: gcc -Wall -Wextra -Werror ft_strmapi.c main.c -o test && ./test */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+char *ft_strmapi(char const *s, char (*f)(unsigned int, char));
+static int g_fail;
+static int g_idx;
+static int g_calls;
+static char f_up(unsigned int i, char c)
+{
+ (void)i;
+ if (c >= 'a' && c <= 'z')
+ return (c - 32);
+ return (c);
+}
+static char f_add(unsigned int i, char c)
+{
+ return ((char)((unsigned char)c + i));
+}
+static char f_cnt(unsigned int i, char c)
+{
+ (void)i;
+ g_calls++;
+ return (c);
+}
+static void run(const char *in, const char *exp, char (*f)(unsigned int, char))
+{
+ char *got;
+ got = ft_strmapi(in, f);
+ g_idx++;
+ if (!got || strcmp(got, exp))
+ {
+ printf("FAIL [%d] \"%s\" exp \"%s\" got %s\n", g_idx, in, exp,
+ got ? got : "(NULL)");
+ g_fail++;
+ }
+ else
+ printf("PASS [%d] \"%s\" -> \"%s\"\n", g_idx, in, got);
+ free(got);
+}
+int main(void)
+{
+ char *got;
+ char *src;
+ run("hello", "HELLO", f_up);
+ run("abc", "ace", f_add);
+ run("aaaa", "abcd", f_add);
+ run("", "", f_up);
+ src = strdup("abc");
+ got = ft_strmapi(src, f_up);
+ g_idx++;
+ if (got && !strcmp(got, "ABC") && !strcmp(src, "abc") && got != src)
+ printf("PASS [%d] not in place (คืนสตริงใหม่)\n", g_idx);
+ else
+ {
+ printf("FAIL [%d] not in place\n", g_idx);
+ g_fail++;
+ }
+ free(got);
+ free(src);
+ got = ft_strmapi("abc", f_cnt);
+ g_idx++;
+ if (got && g_calls == 3)
+ printf("PASS [%d] f ถูกเรียก 3 ครั้ง\n", g_idx);
+ else
+ g_fail++;
+ free(got);
+ g_idx++;
+ if (ft_strmapi(NULL, f_up) == NULL)
+ printf("PASS [%d] NULL -> NULL\n", g_idx);
+ else
+ g_fail++;
+ got = ft_strmapi("ab", f_up);
+ g_idx++;
+ if (got && got[0] == 'A' && got[1] == 'B' && got[2] == '\0')
+ printf("PASS [%d] ปิด '\\0' ท้ายสตริง\n", g_idx);
+ else
+ g_fail++;
+ free(got);
+ printf("=== %d cases, %d FAIL ===\n", g_idx, g_fail);
+ return (g_fail != 0);
+}

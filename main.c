@@ -1,73 +1,93 @@
-/* main.c — test spec: ft_itoa (ไฟล์ทดสอบ ห้ามส่ง! ลบก่อน submit)
- * รัน: gcc -Wall -Wextra -Werror ft_itoa.c main.c -o test && ./test */
-#include <limits.h>
+/* main.c — test spec: ft_strmapi  (ไฟล์เทสต์ ห้ามส่ง! ลบก่อน submit)
+ * รัน: gcc -Wall -Wextra -Werror ft_strmapi.c main.c -o test && ./test
+ *      (ถ้าอิมพลีเมนต์เรียก ft_strlen ให้เพิ่ม ft_strlen.c เข้าไปด้วย) */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-char *ft_itoa(int n);
+char	*ft_strmapi(char const *s, char (*f)(unsigned int, char));
 
-static int g_fail = 0;
-static int g_idx = 0;
+static int	g_fail;
+static int	g_idx;
+static int	g_calls;
 
-static void check(int n, char *label)
+/* f: ตัวพิมพ์ใหญ่ (ทดสอบ map พื้นฐาน) */
+static char	f_up(unsigned int i, char c)
 {
- char ref[32];
- char *got;
+	(void)i;
+	if (c >= 'a' && c <= 'z')
+		return (c - 32);
+	return (c);
+}
 
- snprintf(ref, sizeof(ref), "%d", n);
- got = ft_itoa(n);
- g_idx++;
- if (got == NULL)
- {
-  printf("FAIL [%02d] %-24s n=%-11d expected \"%s\" got NULL\n",
-   g_idx, label, n, ref);
-  g_fail++;
-  return ;
- }
- if (strcmp(got, ref) != 0)
- {
-  printf("FAIL [%02d] %-24s n=%-11d expected \"%s\" got \"%s\"\n",
-   g_idx, label, n, ref, got);
-  g_fail++;
- }
- else
-  printf("PASS [%02d] %-24s n=%-11d -> \"%s\"\n", g_idx, label, n, got);
- free(got);
+/* f: บวก index (พิสูจน์ว่าส่ง index มาถูกช่อง) */
+static char	f_add(unsigned int i, char c)
+{
+	return ((char)((unsigned char)c + i));
+}
+
+/* f: นับจำนวนครั้งที่ถูกเรียก */
+static char	f_cnt(unsigned int i, char c)
+{
+	(void)i;
+	g_calls++;
+	return (c);
+}
+
+static void	report(int ok, const char *label)
+{
+	g_idx++;
+	if (ok)
+		printf("PASS [%02d/09] %s\n", g_idx, label);
+	else
+	{
+		printf("FAIL [%02d/09] %s\n", g_idx, label);
+		g_fail++;
+	}
 }
 
 int main(void)
 {
- char *tmp;
+	char	*got;
+	char	src[8];
 
- printf("=== ft_itoa test spec (reference = snprintf) ===\n");
- check(0, "zero");
- check(7, "1 digit");
- check(-7, "1 digit negative");
- check(10, "2 digits");
- check(-10, "2 digits negative");
- check(42, "2 digits (answer)");
- check(-42, "2 digits negative");
- check(-1, "minus one");
- check(100, "trailing zero");
- check(-100, "trailing zero negative");
- check(12345, "5 digits");
- check(-1234567890, "10 digits negative");
- check(INT_MAX, "INT_MAX");
- check(-2147483647, "INT_MIN + 1");
- check(INT_MIN, "INT_MIN (trap!)");
- printf("--- bonus: ต้องเป็น heap เขียนได้ + free ได้ ---\n");
- g_idx++;
- tmp = ft_itoa(0);
- if (tmp == NULL)
-  printf("FAIL [%02d] heap writable + freeable : NULL\n", g_idx);
- else
- {
-  tmp[0] = 'X';
-  tmp[0] = '0';
-  free(tmp);
-  printf("PASS [%02d] heap writable + freeable (ไม่ใช่ literal)\n", g_idx);
- }
- printf("=== summary: %d cases, FAIL %d ===\n", g_idx, g_fail);
- return (g_fail != 0);
+	got = ft_strmapi("hello", f_up);
+	report(got && !strcmp(got, "HELLO"), "lower->UPPER  \"hello\" -> \"HELLO\"");
+	free(got);
+
+	got = ft_strmapi("abc", f_add);
+	report(got && !strcmp(got, "ace"), "index ส่งถูก:  \"abc\" -> \"ace\"");
+	free(got);
+
+	got = ft_strmapi("aaaa", f_add);
+	report(got && !strcmp(got, "abcd"), "\"aaaa\" -> \"abcd\"");
+	free(got);
+
+	got = ft_strmapi("", f_up);
+	report(got && got[0] == '\0', "empty -> \"\"");
+	free(got);
+
+	strcpy(src, "abc");
+	got = ft_strmapi(src, f_up);
+	report(got && !strcmp(got, "ABC") && !strcmp(src, "abc"),
+		"ไม่แก้ต้นฉบับ (not in place)");
+	free(got);
+
+	got = ft_strmapi("abc", f_cnt);
+	report(got && g_calls == 3, "เรียก f ครบ len ครั้ง (3)");
+	free(got);
+
+	got = ft_strmapi("ab", f_up);
+	report(got && got[0] == 'A' && got[1] == 'B' && got[2] == '\0',
+		"ปิด '\\0' ท้ายสตริง");
+	free(got);
+
+	report(ft_strmapi(NULL, f_up) == NULL, "NULL -> NULL (defensive)");
+
+	got = ft_strmapi("x", f_up);
+	report(got && got[0] == 'X' && got[1] == '\0', "สตริงยาว 1 ตัว");
+	free(got);
+
+	printf("=== %d cases, %d FAIL ===\n", g_idx, g_fail);
+	return (g_fail != 0);
 }

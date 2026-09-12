@@ -52,6 +52,7 @@ void	*ft_calloc(size_t count, size_t size);
 int		ft_toupper(int c);
 int		ft_tolower(int c);
 void	ft_striteri(char *s, void (*f)(unsigned int, char *));
+char	*ft_strmapi(char const *s, char (*f)(unsigned int, char));
 
 
 typedef struct s_list
