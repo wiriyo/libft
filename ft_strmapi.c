@@ -6,7 +6,7 @@
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/12 20:21:19 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/09/12 20:21:19 by awiriyok         ###   ########.fr       */
+/*   Updated: 2026/09/13 18:24:17 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,16 @@
 
 char	*ft_strmapi(char const *s, char (*f)(unsigned int, char))
 {
-    size_t	i;
+	size_t	i;
 	size_t	len;
 	char	*c;
 
 	i = 0;
-	while(!s)
+	while (!s)
 		return (NULL);
 	len = ft_strlen(s);
 	c = malloc(len + 1);
-	while(!c)
+	while (!c)
 		return (NULL);
 	while (i < len)
 	{

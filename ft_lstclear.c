@@ -6,7 +6,7 @@
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/13 12:33:43 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/09/13 12:34:50 by awiriyok         ###   ########.fr       */
+/*   Updated: 2026/09/13 16:49:31 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,14 @@
 
 void	ft_lstclear(t_list **lst, void (*del)(void *))
 {
- t_list	*tmp;
+	t_list	*tmp;
 
- if (!lst)
-  return ;
- while (*lst)
- {
-  tmp = (*lst)->next;
-  ft_lstdelone(*lst, del);
-  *lst = tmp;
- }
+	if (!lst)
+		return ;
+	while (*lst)
+	{
+		tmp = (*lst)->next;
+		ft_lstdelone(*lst, del);
+		*lst = tmp;
+	}
 }

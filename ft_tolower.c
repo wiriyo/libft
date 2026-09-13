@@ -6,16 +6,16 @@
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/25 15:34:36 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/08/25 15:43:04 by awiriyok         ###   ########.fr       */
+/*   Updated: 2026/09/13 18:35:37 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-int ft_tolower(int c)
+int	ft_tolower(int c)
 {
-    if(c >= 'A' && c <= 'Z')
-        c +=32;
-    ft_putchar(c);
-    return(0);
+	if (c >= 'A' && c <= 'Z')
+		c += 32;
+	ft_putchar(c);
+	return (0);
 }

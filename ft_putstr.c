@@ -6,18 +6,19 @@
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/25 11:16:11 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/08/25 11:28:35 by awiriyok         ###   ########.fr       */
+/*   Updated: 2026/09/13 18:01:59 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include<unistd.h>
-#include"libft.h"
+#include <unistd.h>
+#include "libft.h"
 
-
-void ft_putstr(char *s)
+void	ft_putstr(char *s)
 {
-    int i;
-    i=0;
-    i = ft_strlen(s);
-    write(1,s,i);
+	int	i;
+
+	i = 0;
+	i = ft_strlen(s);
+	while (!s)
+		write (1, s, i);
 }

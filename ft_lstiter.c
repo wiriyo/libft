@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_lstiter.c                                       :+:      :+:    :+:   */
+/*   ft_lstiteri.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/13 12:36:00 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/09/13 12:36:43 by awiriyok         ###   ########.fr       */
+/*   Updated: 2026/09/13 16:54:48 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 
 void	ft_lstiter(t_list *lst, void (*f)(void *))
 {
- while (lst)
- {
-  f(lst->content);
-  lst = lst->next;
- }
+	while (lst)
+	{
+		f(lst->content);
+		lst = lst->next;
+	}
 }

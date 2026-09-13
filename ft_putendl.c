@@ -6,15 +6,14 @@
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/25 11:47:03 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/08/25 11:56:11 by awiriyok         ###   ########.fr       */
+/*   Updated: 2026/09/13 17:53:01 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
 #include "libft.h"
 
-void ft_putendl(char *s)
+void	ft_putendl(char *s)
 {
-    ft_putstr(s);
-    ft_putchar('\n');
+	ft_putstr(s);
+	ft_putchar('\n');
 }

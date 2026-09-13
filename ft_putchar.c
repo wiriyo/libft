@@ -6,15 +6,14 @@
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/25 10:27:42 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/08/25 10:51:48 by awiriyok         ###   ########.fr       */
+/*   Updated: 2026/09/13 17:51:21 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include<unistd.h>
-#include"libft.h"
+#include <unistd.h>
+#include "libft.h"
 
-
-void ft_putchar(char c)
+void	ft_putchar(char c)
 {
-    write(1,&c,1);
+	write (1, &c, 1);
 }

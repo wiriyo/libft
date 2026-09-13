@@ -6,15 +6,15 @@
 /*   By: awiriyok <awiriyok@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/25 14:49:48 by awiriyok          #+#    #+#             */
-/*   Updated: 2026/08/25 14:52:48 by awiriyok         ###   ########.fr       */
+/*   Updated: 2026/09/13 16:28:58 by awiriyok         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-int ft_isprint(int c)
+int	ft_isprint(int c)
 {
-    if(c>=32 && c<=126)
-        return(1);
-    return(0);
+	if (c >= 32 && c <= 126)
+		return (1);
+	return (0);
 }
