@@ -77,7 +77,7 @@ static int	fill_words(char **result, char const *s, char c)
 			result[i] = word_dup(s, word_len);
 			if (!result[i])
 			{
-				free_all (result, i - 1);
+				free_all(result, i - 1);
 				return (0);
 			}
 			i++;
