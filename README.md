@@ -23,4 +23,4 @@ make re     # fclean + all
 
 - Linux `man` pages (glibc / BSD documentation)
 - The 42 project subject PDF (Libft v19.3)
-- AI assistants (OpenClaw agents "Chaba" and "Laila") were used as learning support for explaining concepts, debugging, and reviewing code. All functions were implemented and verified by the student; no code was copied directly from any AI output.
+- AI assistants were used as learning support for explaining concepts, debugging, and reviewing code. All functions were implemented and verified by the student; no code was copied directly from any AI output.
